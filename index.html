@@ -4,11 +4,12 @@
 <title>Aurora Mathematica</title>
 <style>
 html,body{margin:0;height:100%;background:#03030a;overflow:hidden;font-family:ui-sans-serif,system-ui,sans-serif}
-canvas{display:block}
-#h{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);text-align:center;color:#cfd3ff;letter-spacing:.35em;font-size:12px;text-transform:uppercase;opacity:0;transition:opacity 2.5s;pointer-events:none;text-shadow:0 0 12px #6a6cff}
+html,body,canvas{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}canvas{display:block}
+#h{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 40px);text-align:center;color:#cfd3ff;letter-spacing:.35em;font-size:12px;text-transform:uppercase;opacity:0;transition:opacity 2.5s;pointer-events:none;text-shadow:0 0 12px #6a6cff}
+#b{position:fixed;left:0;right:0;bottom:0;padding:5px 8px calc(env(safe-area-inset-bottom,0px) + 5px);display:flex;flex-wrap:wrap;justify-content:center;gap:2px 16px;font-size:11px;line-height:1.3;color:rgba(207,211,255,.65);background:rgba(3,3,10,.55);pointer-events:none;z-index:3}#b b{color:#fff;font-weight:600}
 #v{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(3,3,10,.85))}
 </style></head><body>
-<div id="v"></div><div id="h"></div>
+<div id="v"></div><div id="h"></div><div id="b"><span><b>Next</b> click · single-tap · → · space</span><span><b>Back</b> right-click · long-tap · ←</span><span><b>Random-Kaleidoscope</b> K · double-tap</span></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const N=["Breathing Sphere","Pulsing Torus","Torus Knot","Clifford Attractor","De Jong Attractor","Lissajous Cloud","Rolling Swell","Spiral Galaxy","Rhodonea Bloom","Möbius Ribbon","Klein Bottle","Ripple Sheet","Twin-Source Interference","Conch Shell","Harmonic Blob","Supershape","Gyroid","Schwarz P Surface","Wavy Lattice","Warped Nebula","Hopf Fibration","Thomas Attractor","Aizawa Attractor","Phyllotaxis Dome","Superquadric","Tornado","Conical Spring","Lemniscate Ribbon","Epicycles","Chladni Plate","Sierpinski Tetrahedron","Cantor Dust","Kaleidoscopic IFS","Mandelbrot Terrain","Julia Terrain","Lorenz Attractor","Dini Surface","Hyperboloid","Helicoid","Enneper Surface","Ocean Swell","Onion Shells","Orbital Lobes","Lissajous Knot","Spirograph","Sea Urchin","Vortex Rings","Quasicrystal","Harmonograph","Fibonacci Sphere","Ripple Bowl","Radial Ripple Dome","Raindrop Pond","Spiral Ripple","Ripple Ring Wave","Phyllotaxis Cone","Phyllotaxis Bowl","Phyllotaxis Wobble","Phyllotaxis Vase","Phyllotaxis Pulse","Storm Surge","Eddy Ocean","Wave Tank Cylinder","Egg-Crate Swell","Julia Dendrite","Julia Rabbit","Julia Spiral Dome","Julia Ripple Sea","Julia Cavern","Double Helix"];
@@ -125,6 +126,17 @@ const COUNT=60000,g=new THREE.BufferGeometry(),sd=new Float32Array(COUNT*3);
 for(let i=0;i<sd.length;i++)sd[i]=Math.random();
 g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(COUNT*3),3));
 g.setAttribute("aS",new THREE.BufferAttribute(sd,3));
+
+
+
+
+
+
+
+
+
+
+
 const U={uT:{value:0},uA:{value:0},uB:{value:1},uM:{value:0},uPx:{value:dpr*innerHeight/900*1.6}};
 const pts=new THREE.Points(g,new THREE.ShaderMaterial({uniforms:U,vertexShader:VS,fragmentShader:FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
 pts.frustumCulled=false;sc.add(pts);
@@ -169,7 +181,7 @@ const kSc=new THREE.Scene(),kq=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new T
 kq.frustumCulled=false;kSc.add(kq);
 let kAmt=0,kAuto=false,kSup=false,lastCur=-1;const KSET=[69,20,28,31,66];
 const pickK=()=>{let m;do{m=Math.random()*7|0;}while(m===lastK);lastK=m;KU.uM.value=m;};
-addEventListener("keydown",e=>{if(e.code!=="KeyK"||e.repeat)return;if(kOn||kAuto){kOn=false;kSup=true;return;}pickK();kOn=true;});
+const toggleK=()=>{if(kOn||kAuto){kOn=false;kSup=true;return;}pickK();kOn=true;};addEventListener("keydown",e=>{if(e.code==="KeyK"&&!e.repeat)toggleK();});
 addEventListener("resize",()=>{R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();U.uPx.value=dpr*innerHeight/900*1.6;BU.uAsp.value=innerWidth/innerHeight;KU.uAsp.value=innerWidth/innerHeight;rtm.setSize(innerWidth*dpr,innerHeight*dpr);});
 
 const HOLD=105,MORPH=15;let deck=[],last=-1;const ACT=[...Array(70).keys()];
@@ -180,7 +192,9 @@ let cur=next(),nxt=next(),seg=0;U.uA.value=cur;U.uB.value=nxt;
 const hud=document.getElementById("h");
 function show(i){hud.textContent=String(ACT.indexOf(i)+1).padStart(2,"0")+" / "+ACT.length+"  ·  "+N[i];hud.style.opacity=1;setTimeout(()=>hud.style.opacity=0,7000);}
 show(cur);
-let rv=false,mm=0,bk=false;const hist=[];const skip=()=>{if(!rv&&seg<HOLD)seg=HOLD;};const prev=()=>{if(rv)return;if(seg>HOLD){rv=true;mm=U.uM.value;return;}if(!hist.length)return;deck.push(nxt,cur);nxt=hist.pop();U.uB.value=nxt;bk=true;seg=HOLD;shown=false;};addEventListener("pointerdown",e=>{if(e.button===0)skip();});addEventListener("contextmenu",e=>{e.preventDefault();prev();});addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="ArrowRight")skip();else if(e.code==="ArrowLeft")prev();});
+let rv=false,mm=0,bk=false;const hist=[];const skip=()=>{if(!rv&&seg<HOLD)seg=HOLD;};const prev=()=>{if(rv)return;if(seg>HOLD){rv=true;mm=U.uM.value;return;}if(!hist.length)return;deck.push(nxt,cur);nxt=hist.pop();U.uB.value=nxt;bk=true;seg=HOLD;shown=false;};let tapTimer=0,lpTimer=0,lastTouch=-1e9,sx=0,sy=0;addEventListener("pointerdown",e=>{if(e.button!==0)return;if(e.pointerType!=="touch"){skip();return;}lastTouch=performance.now();sx=e.clientX;sy=e.clientY;lpTimer=setTimeout(()=>{lpTimer=0;if(tapTimer){clearTimeout(tapTimer);tapTimer=0;}prev();if(navigator.vibrate)navigator.vibrate(15);},500);});
+const endT=e=>{if(e.pointerType!=="touch")return;lastTouch=performance.now();if(!lpTimer)return;clearTimeout(lpTimer);lpTimer=0;if(e.type==="pointercancel")return;if(tapTimer){clearTimeout(tapTimer);tapTimer=0;toggleK();}else{tapTimer=setTimeout(()=>{tapTimer=0;skip();},300);}};
+addEventListener("pointerup",endT);addEventListener("pointercancel",endT);addEventListener("pointermove",e=>{if(lpTimer&&Math.hypot(e.clientX-sx,e.clientY-sy)>12){clearTimeout(lpTimer);lpTimer=0;}});addEventListener("contextmenu",e=>{e.preventDefault();if(performance.now()-lastTouch<1500)return;prev();});addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="ArrowRight")skip();else if(e.code==="ArrowLeft")prev();});
 let shown=true,px=0,py=0;
 
 const clk=new THREE.Clock();let T=0;
