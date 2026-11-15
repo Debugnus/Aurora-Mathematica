@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aurora Mathematica</title>
+<style>
+html,body{margin:0;height:100%;background:#03030a;overflow:hidden;font-family:ui-sans-serif,system-ui,sans-serif}
+canvas{display:block}
+#h{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);text-align:center;color:#cfd3ff;letter-spacing:.35em;font-size:12px;text-transform:uppercase;opacity:0;transition:opacity 2.5s;pointer-events:none;text-shadow:0 0 12px #6a6cff}
+#v{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(3,3,10,.85))}
+</style></head><body>
+<div id="v"></div><div id="h"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const N=["Breathing Sphere","Pulsing Torus","Torus Knot","Clifford Attractor","De Jong Attractor","Lissajous Cloud","Rolling Swell","Spiral Galaxy","Rhodonea Bloom","Möbius Ribbon","Klein Bottle","Ripple Sheet","Twin-Source Interference","Conch Shell","Harmonic Blob","Supershape","Gyroid","Schwarz P Surface","Wavy Lattice","Warped Nebula","Hopf Fibration","Thomas Attractor","Aizawa Attractor","Phyllotaxis Dome","Superquadric","Tornado","Conical Spring","Lemniscate Ribbon","Epicycles","Chladni Plate","Sierpinski Tetrahedron","Cantor Dust","Kaleidoscopic IFS","Mandelbrot Terrain","Julia Terrain","Lorenz Attractor","Dini Surface","Hyperboloid","Helicoid","Enneper Surface","Ocean Swell","Onion Shells","Orbital Lobes","Lissajous Knot","Spirograph","Sea Urchin","Vortex Rings","Quasicrystal","Harmonograph","Fibonacci Sphere","Ripple Bowl","Radial Ripple Dome","Raindrop Pond","Spiral Ripple","Ripple Ring Wave","Phyllotaxis Cone","Phyllotaxis Bowl","Phyllotaxis Wobble","Phyllotaxis Vase","Phyllotaxis Pulse","Storm Surge","Eddy Ocean","Wave Tank Cylinder","Egg-Crate Swell","Julia Dendrite","Julia Rabbit","Julia Spiral Dome","Julia Ripple Sea","Julia Cavern","Double Helix"];
+const VS=`
+#define TAU 6.2831853
+attribute vec3 aS;uniform float uT,uA,uB,uM,uPx;varying vec3 vC;
+vec3 P(int i,vec3 s,float t){
+float a=s.x*TAU,b=s.y*TAU,c=s.z;
+if(i==0){float th=acos(1.-2.*s.y);float r=2.+.25*sin(5.*th+t)*cos(4.*a-t*.7);return r*vec3(sin(th)*cos(a),cos(th),sin(th)*sin(a));}
+if(i==1){float r=(.6+.15*sin(t+a*3.))*(.7+.3*c);return vec3((1.8+r*cos(b))*cos(a),r*sin(b)*1.5,(1.8+r*cos(b))*sin(a));}
+if(i==2){float u=a*2.;vec3 k=vec3((2.+cos(1.5*u))*cos(u),sin(1.5*u)*1.4,(2.+cos(1.5*u))*sin(u))*.75;return k+.22*(.5+c)*vec3(cos(b),sin(b),cos(b+u));}
+if(i==3){vec2 p=s.xy*2.-1.;float A=-1.4+.3*sin(t*.1);for(int k=0;k<12;k++)p=vec2(sin(A*p.y)+cos(A*p.x),sin(1.6*p.x)+.7*cos(1.6*p.y));return vec3(p*1.2,(c-.5)*1.5+sin(p.x*3.+t)*.3);}
+if(i==4){vec2 p=s.xy*2.-1.;float A=1.4+.4*sin(t*.13),D=-2.1+.3*cos(t*.11);for(int k=0;k<10;k++)p=vec2(sin(A*p.y)-cos(-2.3*p.x),sin(2.4*p.x)-cos(D*p.y));return vec3(p*1.2,(c-.5)*2.*(1.+sin(p.x*2.)));}
+if(i==5){vec3 k=vec3(sin(3.*a+t*.3),sin(4.*a),sin(5.*a+t*.2))*2.2;return k+(vec3(s.y,c,fract(s.x*7.))-.5)*.5;}
+if(i==6){vec2 p=(s.xy*2.-1.)*3.6;float h=sin(p.x*.9+t*.6)*.8+sin(p.y*.6-t*.4)*.4+.1*sin(p.x*3.+p.y*2.5+t*1.5);return vec3(p.x,h,p.y);}
+if(i==-6){float rg=step(s.x,.2);float h=(s.y*2.-1.)*3.;h=mix(h,floor(h*5.)/5.,rg);float ph=h*2.+t*.5;vec3 p1=vec3(cos(ph),h,sin(ph))*1.1,p2=vec3(cos(ph+3.14159),h,sin(ph+3.14159))*1.1;return (rg>.5?mix(p1,p2,c):(c<.5?p1:p2))+.06*(vec3(fract(s.x*91.),fract(s.y*77.),fract(s.z*63.))-.5);}
+if(i==7){float arm=floor(s.y*3.);float r=pow(s.x,.6)*3.2;float th=r*2.2+arm*2.0944+t*.15+(fract(s.y*3.)-.5)*.9/(r+.3);return vec3(r*cos(th),(c-.5)*1.5*exp(-r*.5),r*sin(th));}
+if(i==8){float r=2.6*cos(5.*a+t*.2);return vec3(r*cos(a),(c-.5)*1.4*cos(a*3.),r*sin(a))*(.5+.5*s.y);}
+if(i==9){float v=(s.y-.5)*1.4;float q=2.+v*cos(a*.5);return vec3(q*cos(a),v*sin(a*.5),q*sin(a))*1.1;}
+if(i==10){float k=2.+cos(a*.5)*sin(b)-sin(a*.5)*sin(2.*b);return vec3(k*cos(a),sin(a*.5)*sin(b)+cos(a*.5)*sin(2.*b),k*sin(a))*1.1;}
+if(i==11){vec2 p=(s.xy*2.-1.)*3.5;float r=length(p);return vec3(p.x,sin(r*2.-t*1.5)*.6/(1.+r*.3),p.y);}
+if(i==12){vec2 p=(s.xy*2.-1.)*3.5;float h=sin(length(p-vec2(1.5,0.))*3.-t)+sin(length(p+vec2(1.5,0.))*3.-t);return vec3(p.x,h*.45,p.y);}
+if(i==13){float u=a*1.5;float sc=.1*exp(.25*u);vec3 d=vec3(cos(u),0.,sin(u));return d*sc*2.+sc*(cos(b)*d+sin(b)*vec3(0.,1.,0.))+vec3(0.,u*.15-.7,0.);}
+if(i==14){float th=acos(1.-2.*s.y);float r=1.8+.5*sin(3.*th+t*.4)*cos(4.*a)+.3*cos(5.*th)*sin(3.*a-t*.5);return r*vec3(sin(th)*cos(a),cos(th),sin(th)*sin(a));}
+if(i==15){float n=1.5+.8*sin(t*.2);float ph=(s.y-.5)*3.14159;float r1=pow(pow(abs(cos(2.*a)),n)+pow(abs(sin(2.*a)),n),-1./n);float r2=pow(pow(abs(cos(1.5*ph)),n)+pow(abs(sin(1.5*ph)),n),-1./n);return 1.2*vec3(r1*cos(a)*r2*cos(ph),r2*sin(ph),r1*sin(a)*r2*cos(ph));}
+if(i==16){vec3 p=(s*2.-1.)*3.77;p.z+=t*.3;for(int k=0;k<4;k++){float f=sin(p.x)*cos(p.y)+sin(p.y)*cos(p.z)+sin(p.z)*cos(p.x);vec3 g=vec3(cos(p.x)*cos(p.y)-sin(p.z)*sin(p.x),cos(p.y)*cos(p.z)-sin(p.x)*sin(p.y),cos(p.z)*cos(p.x)-sin(p.y)*sin(p.z));p-=f*g/(dot(g,g)+.05);}p.z-=t*.3;return p*.55;}
+if(i==17){vec3 p=(s*2.-1.)*3.77;for(int k=0;k<4;k++){float f=cos(p.x)+cos(p.y)+cos(p.z)+.6*sin(t*.4);vec3 g=-sin(p);p-=f*g/(dot(g,g)+.05);}return p*.6;}
+if(i==18){vec3 p=floor(s*8.)/7.*2.-1.;p*=2.8;p+=.3*vec3(sin(p.y*2.+t),sin(p.z*2.+t*1.1),sin(p.x*2.+t*.9));return p+(fract(s*8.)-.5)*.1;}
+if(i==19){float th=acos(1.-2.*s.y);vec3 p=2.4*pow(c,.4)*vec3(sin(th)*cos(a),cos(th),sin(th)*sin(a));for(int k=0;k<3;k++)p+=.6*sin(p.yzx*1.7+t*.3+float(k));return p;}
+if(i==20){float e=(floor(c*6.)+1.)/7.*1.5708;float ph=floor(s.y*14.)/14.*TAU+t*.1;vec4 q=vec4(sin(e)*cos(ph+a),sin(e)*sin(ph+a),cos(e)*cos(a),cos(e)*sin(a));return 1.3*q.xyz/(1.15-q.w)+.03*(fract(s*53.)-.5);}
+if(i==21){vec3 p=(s*2.-1.)*3.;for(int k=0;k<30;k++)p+=.18*(vec3(sin(p.y),sin(p.z),sin(p.x))-.208*p);return p*.7;}
+if(i==22){vec3 p=(s*2.-1.)*.5;for(int k=0;k<70;k++){float x=p.x,y=p.y,z=p.z;p+=.012*vec3((z-.7)*x-3.5*y,3.5*x+(z-.7)*y,.6+.95*z-z*z*z/3.-(x*x+y*y)*(1.+.25*z)+.1*z*x*x*x);}return p.yzx*2.2-vec3(0.,1.5,0.);}
+if(i==23){float n=floor(s.x*8000.);float r=sqrt(n/8000.)*3.;float th=n*2.39996+t*.1;return vec3(r*cos(th),sin(r*1.8-t*.8)*.5-r*.15,r*sin(th))+.04*(fract(s*37.)-.5);}
+if(i==24){float th=acos(1.-2.*s.y);vec3 d=vec3(sin(th)*cos(a),cos(th),sin(th)*sin(a));float e=.4+.9*(.5+.5*sin(t*.3));return 2.2*sign(d)*pow(abs(d),vec3(e));}
+if(i==25){float y=(s.y-.5)*6.;float r=.2+(y+3.)*.3*(.5+.5*c);float th=a+y*1.5-t;return vec3(r*cos(th),y,r*sin(th));}
+if(i==26){float u=a*5.;float r=1.2+.5*sin(u*.5+t);return vec3(r*cos(u),(s.x-.5)*5.,r*sin(u))+.1*vec3(cos(b),sin(b),sin(b+a))*(.5+c);}
+if(i==27){float d=1.+sin(a)*sin(a);vec3 k=vec3(cos(a),0.,sin(a)*cos(a))/d*3.;float v=(s.y-.5)*1.8;return k+vec3(0.,v*cos(a+t*.5),v*sin(a+t*.5));}
+if(i==28){vec3 k=vec3(0.);for(int j=1;j<6;j++){float f=float(j);k+=vec3(cos(f*a+t*.05*f),sin((f+1.)*a+t*.17),cos((2.*f+1.)*a-t*.12))/f;}return k*1.2+vec3(s.y-.5,c-.5,fract(s.y*9.)-.5)*.2;}
+if(i==29){vec2 p=s.xy*2.-1.;float h=sin(9.4248*p.x)*sin(6.2832*p.y)*cos(t*.6)+sin(6.2832*p.x)*sin(9.4248*p.y)*sin(t*.6);return vec3(p.x*3.,h*.9,p.y*3.);}
+if(i==30){vec3 p=vec3(0.);float u=s.x;for(int k=0;k<10;k++){float d=floor(fract(u)*4.);u*=4.;vec3 v=d<1.?vec3(1.,1.,1.):d<2.?vec3(1.,-1.,-1.):d<3.?vec3(-1.,1.,-1.):vec3(-1.,-1.,1.);p=(p+v)*.5;}return p*2.6;}
+if(i==31){vec3 p=vec3(0.),u=s;float w=1.;for(int k=0;k<6;k++){vec3 d=floor(fract(u)*2.);u*=2.;p+=(d*2.-1.)*w;w/=3.;}return p*1.8;}
+if(i==32){vec3 p=s*2.-1.;float an=.5+.2*sin(t*.2);mat2 R=mat2(cos(an),sin(an),-sin(an),cos(an));for(int k=0;k<6;k++){p=abs(p)-vec3(.5,.3,.2);p.xy=R*p.xy;p.yz=R*p.yz;p*=1.15;}return clamp(p*1.2,-3.,3.);}
+if(i==33){vec2 c0=vec2(s.x*3.4-2.4,s.y*2.4-1.2),z=vec2(0.);float n=0.;for(int k=0;k<32;k++){if(dot(z,z)>16.)break;z=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+c0;n+=1.;}return vec3((c0.x+.7)*1.7,n/32.*2.2-.6,c0.y*1.7);}
+if(i==34){vec2 z0=(s.xy*2.-1.)*1.6,z=z0,k0=.7885*vec2(cos(t*.2),sin(t*.2));float n=0.;for(int k=0;k<32;k++){if(dot(z,z)>16.)break;z=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+k0;n+=1.;}return vec3(z0.x*1.8,n/32.*2.2-.6,z0.y*1.8);}
+if(i==35){vec3 p=vec3(s.x*30.-15.,s.y*40.-20.,c*30.+5.);for(int k=0;k<60;k++)p+=.014*vec3(10.*(p.y-p.x),p.x*(28.-p.z)-p.y,p.x*p.y-2.667*p.z);return vec3(p.x,p.z-25.,p.y)*.11;}
+if(i==36){float u=a*2.,v=.1+s.y*1.9;return vec3(cos(u)*sin(v),(cos(v)+log(tan(v*.5))+.2*u-1.)*.7,sin(u)*sin(v))*1.7;}
+if(i==37){float k=.7+.3*sin(t*.3),v=(s.y-.5)*4.;return vec3(cos(a)+k*v*sin(a),v,sin(a)-k*v*cos(a));}
+if(i==38){float u=(s.y*2.-1.)*2.5,v=a*1.5;return vec3(u*cos(v),v*.35-1.6,u*sin(v));}
+if(i==39){float u=(s.x-.5)*3.2,v=(s.y-.5)*3.2;return vec3(u-u*u*u/3.+u*v*v,u*u-v*v,v-v*v*v/3.+v*u*u)*.8;}
+if(i==40){vec2 p=(s.xy*2.-1.)*3.6;float h=0.;for(int k=1;k<5;k++){float f=float(k);h+=sin(dot(p,vec2(cos(f*1.7),sin(f*1.7)))*f*.8+t*.3*f)/f;}return vec3(p.x,h*.6,p.y);}
+if(i==41){float k=floor(c*7.);float rad=(k+1.)*.38;float th=acos(1.-2.*s.y);float an=a+t*.1*k;return rad*(1.+.05*sin(t+rad*3.))*vec3(sin(th)*cos(an),cos(th),sin(th)*sin(an));}
+if(i==42){float th=acos(1.-2.*s.y);float r=2.6*abs(.5*(3.*cos(th)*cos(th)-1.)*cos(t*.3)+sin(th)*sin(th)*cos(2.*a)*sin(t*.3));return r*vec3(sin(th)*cos(a),cos(th),sin(th)*sin(a))*(.4+.6*c);}
+if(i==43){vec3 k=vec3(cos(3.*a+t*.1),cos(2.*a+.7),cos(7.*a+.3))*2.2;return k+(s.y-.5)*.9*vec3(sin(a*3.),0.,cos(a*2.));}
+if(i==44){float u=a*6.,R=2.,r=.7+.1*sin(t*.2);return vec3((R-r)*cos(u)+1.3*cos((R-r)/r*u),(s.y-.5)+sin(u*.5)*.6,(R-r)*sin(u)-1.3*sin((R-r)/r*u))*.9;}
+if(i==45){vec2 q=floor(s.xy*22.)/22.;float th=acos(1.-2.*q.y),ph=q.x*TAU;float r=.5+c*2.4*(1.+.2*sin(t+q.x*20.));return r*vec3(sin(th)*cos(ph),cos(th),sin(th)*sin(ph));}
+if(i==46){float k=floor(c*4.);float y=sin(t*.4+k*1.6)*2.4;float R=1.+(y+2.4)*.2;return vec3((R+.35*cos(b))*cos(a),y+.35*sin(b),(R+.35*cos(b))*sin(a));}
+if(i==47){vec2 p=(s.xy*2.-1.)*3.5;float h=0.;for(int k=0;k<5;k++){float an=float(k)*1.2566;h+=cos(dot(p,vec2(cos(an),sin(an)))*2.5+t*.5);}return vec3(p.x,h*.3,p.y);}
+if(i==48){float u=s.x*40.;float dm=exp(-u*.04);vec3 k=vec3(sin(u+t*.1)+sin(u*2.01),sin(u*3.+1.)+sin(u*1.99),sin(u*2.02+.5)+sin(u*.99))*dm*1.4;return k+(s.yzy-.5)*.06;}
+if(i==50){vec2 p=(s.xy*2.-1.)*3.5;float r=length(p);return vec3(p.x,sin(r*2.5-t*1.4)*.5+r*r*.16-1.,p.y);}
+if(i==51){float r=sqrt(s.x)*3.6;return vec3(r*cos(b),sin(r*3.-t*1.6)*.55*exp(-r*.2)+1.-r*.25,r*sin(b));}
+if(i==52){vec2 p=(s.xy*2.-1.)*3.5;float h=0.;for(int k=0;k<3;k++){float fk=float(k);vec2 o=vec2(sin(fk*2.1+t*.15),cos(fk*1.7+t*.12))*2.;float d=length(p-o);h+=exp(-d*.35)*sin(d*4.-t*1.6+fk*2.);}return vec3(p.x,h*.45,p.y);}
+if(i==53){float r=sqrt(s.x)*3.6;float h=sin(r*2.-t*1.2+3.*b)*.5+.5*sin(r*.8);return vec3(r*cos(b),h,r*sin(b));}
+if(i==54){float y=(s.y-.5)*5.;float r=2.+.4*sin(y*3.-t*1.5)+.2*sin(a*6.+t);return vec3(r*cos(a),y,r*sin(a));}
+if(i==55){float n=floor(s.x*8000.),u=n/8000.;float th=n*2.39996+t*.1;float r=u*3.;return vec3(r*cos(th),2.2-u*4.4+.2*sin(r*3.-t),r*sin(th))+.03*(fract(s*37.)-.5);}
+if(i==56){float n=floor(s.x*8000.);float r=sqrt(n/8000.)*3.2;float th=n*2.39996-t*.1;return vec3(r*cos(th),r*r*.25-1.2+.3*sin(r*3.-t),r*sin(th))+.03*(fract(s*37.)-.5);}
+if(i==57){float n=floor(s.x*8000.);float r=sqrt(n/8000.)*3.;float th=n*(2.39996+.004*sin(t*.15));return vec3(r*cos(th),sin(r*2.-t)*.4,r*sin(th))+.03*(fract(s*37.)-.5);}
+if(i==58){float n=floor(s.x*8000.),u=n/8000.;float r=1.1+.7*sin(u*9.+t*.4);float th=n*2.39996;return vec3(r*cos(th),(u-.5)*5.,r*sin(th))+.03*(fract(s*37.)-.5);}
+if(i==59){float n=floor(s.x*8000.);float q=sqrt(n/8000.);float r=q*3.2*(1.+.1*sin(t*.7-q*8.));float th=n*2.39996-t*.2;return vec3(r*cos(th),.3*sin(q*10.-t*1.2),r*sin(th))+.03*(fract(s*37.)-.5);}
+if(i==60){vec2 p=(s.xy*2.-1.)*3.6;float h=0.;for(int k=1;k<5;k++){float f=float(k);h+=(1.-abs(sin(dot(p,vec2(cos(f*1.7),sin(f*1.7)))*f*.8+t*.5*f)))/f;}return vec3(p.x,h*.7-.9,p.y);}
+if(i==61){float r=sqrt(s.x)*3.6;vec2 p=r*vec2(cos(b),sin(b));float an=r*.5-t*.2;vec2 q=vec2(p.x*cos(an)-p.y*sin(an),p.x*sin(an)+p.y*cos(an));float h=sin(q.x*1.5+t*.5)*.5+sin(q.y*2.-t*.4)*.3;return vec3(p.x,h,p.y);}
+if(i==62){float y=(s.y-.5)*5.;float r=2.2+.35*sin(y*2.+a*3.-t*.8)+.2*sin(a*5.-t*.5)+.15*sin(y*4.+t*.6);return vec3(r*cos(a),y,r*sin(a));}
+if(i==63){vec2 p=(s.xy*2.-1.)*3.6;float h=sin(p.x*1.2+t*.5)*sin(p.y*1.2-t*.4)*.8+.2*sin(p.x*2.7+p.y*2.3+t);return vec3(p.x,h,p.y);}
+if(i==64){vec2 z0=(s.xy*2.-1.)*1.6,z=z0,k0=vec2(0.,1.)+.05*vec2(cos(t*.3),sin(t*.2));float n=0.;for(int k=0;k<32;k++){if(dot(z,z)>16.)break;z=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+k0;n+=1.;}return vec3(z0.x*1.8,n/32.*2.2-.6,z0.y*1.8);}
+if(i==65){vec2 z0=(s.xy*2.-1.)*1.6,z=z0,k0=vec2(-.123,.745)+.02*vec2(sin(t*.3),cos(t*.25));float n=0.;for(int k=0;k<32;k++){if(dot(z,z)>16.)break;z=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+k0;n+=1.;}return vec3(z0.x*1.8,n/32.*2.2-.6,z0.y*1.8);}
+if(i==66){vec2 z0=1.7*sqrt(s.x)*vec2(cos(b),sin(b)),z=z0,k0=vec2(.285,.01)+.05*vec2(cos(t*.2),sin(t*.17));float n=0.;for(int k=0;k<32;k++){if(dot(z,z)>16.)break;z=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+k0;n+=1.;}return vec3(z0.x*1.8,n/32.*2.2-.6,z0.y*1.8);}
+if(i==67){vec2 z0=(s.xy*2.-1.)*1.6,z=z0,k0=vec2(-.8,.156)+.03*vec2(cos(t*.2),sin(t*.3));float n=0.;for(int k=0;k<32;k++){if(dot(z,z)>16.)break;z=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+k0;n+=1.;}return vec3(z0.x*1.8,n/32.*1.8-.5+.15*sin(length(z0)*6.-t*1.2),z0.y*1.8);}
+if(i==68){vec2 z0=(s.xy*2.-1.)*1.6,z=z0,k0=vec2(-.4,.6)+.08*vec2(cos(t*.15),sin(t*.2));float n=0.;for(int k=0;k<32;k++){if(dot(z,z)>16.)break;z=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+k0;n+=1.;}return vec3(z0.x*1.8,1.-n/32.*2.2,z0.y*1.8);}
+if(i==69){float rg=step(s.x,.2);float h=(s.y*2.-1.)*3.;h=mix(h,floor(h*5.)/5.,rg);float ph=h*2.+t*.5;vec3 p1=vec3(cos(ph),h,sin(ph))*1.1,p2=vec3(cos(ph+3.14159),h,sin(ph+3.14159))*1.1;return (rg>.5?mix(p1,p2,c):(c<.5?p1:p2))+.06*(vec3(fract(s.x*91.),fract(s.y*77.),fract(s.z*63.))-.5);}
+float n=floor(s.x*5000.);float y=1.-2.*(n+.5)/5000.;float r=sqrt(1.-y*y);float th=n*2.39996+t*.15;return vec3(r*cos(th),y,r*sin(th))*(2.2+.25*sin(y*8.+t))+.03*(fract(s*41.)-.5);
+}
+mat2 rt(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);}
+vec3 W(vec3 p,float i,float t){
+float h=fract(sin(i*45.123)*9871.37);
+p.xz*=rt(t*.08*(h-.3)*3.);
+p.yz*=rt(.5*sin(t*.11+h*6.));
+p.xz*=rt(p.y*(.45*sin(t*.23+h*6.28)+.2*sin(t*.37)));
+p.xy*=rt(p.z*.3*sin(t*.19+h*9.));
+float f=.5+.5*sin(t*.16+h*12.);
+p.xz*=rt(t*.05+h*6.);
+p.x=abs(p.x)-.9*f+.45*f;
+p.y=abs(p.y+.3*sin(t*.2))*(1.-.25*f)-.3*f;
+p*=1.+.1*sin(t*.5+h*5.);
+p+=.22*sin(p.yzx*1.4+t*.35+h*6.);
+return p;}
+vec3 col(float i,vec3 p,vec3 s){float h=fract(sin(i*12.9898)*43758.5453);float gr=smoothstep(-2.5,2.5,dot(p,normalize(vec3(.3,1.,.2)))+.6*sin(length(p)*1.5-uT*.3));vec3 a1=.55+.45*cos(TAU*(h+vec3(0.,.33,.67)*(.5+h)));vec3 a2=.55+.45*cos(TAU*(h+.45+vec3(0.,.33,.67)*(.5+h)+length(p)*.1));return mix(a1,a2,gr);}
+void main(){
+vec3 s=aS;
+vec3 A=W(P(int(uA+.5),s,uT),uA,uT),B=W(P(int(uB+.5),s,uT),uB,uT);
+float m=clamp(uM*1.6-s.x*.6,0.,1.);m=m*m*(3.-2.*m);
+vec3 p=mix(A,B,m);
+p+=sin(m*3.14159)*1.2*vec3(sin(s.y*40.+uT),sin(s.z*40.+uT*1.3),sin(s.x*40.-uT));
+p=clamp(p,-6.,6.);
+vC=mix(col(uA,A,s),col(uB,B,s),m);
+vec4 mv=modelViewMatrix*vec4(p,1.);
+gl_PointSize=min(uPx*(12.+6.*s.z)/max(-mv.z,.5),uPx*22.);
+gl_Position=projectionMatrix*mv;}`;
+const FS=`varying vec3 vC;void main(){float d=length(gl_PointCoord-.5);if(d>.5)discard;gl_FragColor=vec4(vC,smoothstep(.5,0.,d)*.45);}`;
+
+const R=new THREE.WebGLRenderer({antialias:false,powerPreference:"high-performance"});
+const dpr=Math.min(devicePixelRatio||1,2);R.setPixelRatio(dpr);R.setSize(innerWidth,innerHeight);
+document.body.prepend(R.domElement);
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,100);
+const COUNT=60000,g=new THREE.BufferGeometry(),sd=new Float32Array(COUNT*3);
+for(let i=0;i<sd.length;i++)sd[i]=Math.random();
+g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(COUNT*3),3));
+g.setAttribute("aS",new THREE.BufferAttribute(sd,3));
+const U={uT:{value:0},uA:{value:0},uB:{value:1},uM:{value:0},uPx:{value:dpr*innerHeight/900*1.6}};
+const pts=new THREE.Points(g,new THREE.ShaderMaterial({uniforms:U,vertexShader:VS,fragmentShader:FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+pts.frustumCulled=false;sc.add(pts);
+const BF=`varying vec2 vUv;uniform float uT,uA,uB,uM,uAsp;
+mat2 rt(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);}
+vec3 bg(float i,vec2 p,float t){
+float h=fract(sin(i*91.7)*437.5),g=fract(sin(i*17.3)*913.1);float md=mod(i,5.);
+p*=rt(t*.04*(h-.5)*3.+h*6.);
+vec2 q=p*(1.3+h*1.4);
+q+=.6*vec2(sin(q.y*2.+t*.21+h*6.),cos(q.x*2.-t*.17+g*6.));
+q+=.4*vec2(sin(q.y*3.7-t*.31),cos(q.x*3.1+t*.27));
+float f;
+if(md<1.)f=.5+.5*sin(q.x*3.+q.y*2.+sin(q.y*3.+t*.3)*2.);
+else if(md<2.)f=.5+.5*sin(length(q)*5.-t*.4);
+else if(md<3.)f=.5+.25*sin(q.x*4.+t*.2)+.25*sin(q.y*5.-t*.25)*cos(q.x*3.);
+else if(md<4.){f=0.;for(int k=0;k<3;k++){vec2 o=vec2(sin(t*.15+float(k)*2.1+h*6.),cos(t*.12+float(k)*1.7+g*6.))*.9;f+=.35/(.3+dot(q-o,q-o));}f=1.-exp(-f*.5);}
+else f=.5+.5*sin(atan(q.y,q.x)*5.+length(q)*3.-t*.3);
+return vec3(.03+.17*f)*(1.1-.5*length(p));}
+void main(){vec2 p=(vUv-.5)*vec2(uAsp,1.)*2.;float m=smoothstep(0.,1.,uM);gl_FragColor=vec4(mix(bg(uA,p,uT),bg(uB,p,uT),m),1.);}`;
+const BV=`varying vec2 vUv;void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,.9999,1.);}`;
+const BU={uT:U.uT,uA:U.uA,uB:U.uB,uM:U.uM,uAsp:{value:innerWidth/innerHeight}};
+const rtg=new THREE.WebGLRenderTarget(384,384,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+const bgSc=new THREE.Scene(),q1=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:BU,vertexShader:BV,fragmentShader:BF,depthTest:false,depthWrite:false}));
+q1.frustumCulled=false;bgSc.add(q1);
+const q2=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:{tx:{value:rtg.texture}},vertexShader:`varying vec2 vUv;void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,.9999,1.);}`,fragmentShader:`varying vec2 vUv;uniform sampler2D tx;void main(){gl_FragColor=texture2D(tx,vUv);}`,depthTest:false,depthWrite:false}));
+q2.frustumCulled=false;q2.renderOrder=-10;sc.add(q2);
+let kOn=false,lastK=-1;
+const rtm=new THREE.WebGLRenderTarget(innerWidth*dpr,innerHeight*dpr,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+const KU={tx:{value:rtm.texture},uM:{value:0},uAmt:{value:0},uT:U.uT,uAsp:{value:innerWidth/innerHeight}};
+const KF=`varying vec2 vUv;uniform sampler2D tx;uniform float uM,uT,uAsp,uAmt;
+vec2 fold(vec2 p,float n,float rot){float r=length(p),a=atan(p.y,p.x)+rot,sg=6.2832/n;a=mod(a,sg);a=abs(a-sg*.5);return r*vec2(cos(a),sin(a));}
+void main(){vec2 p=(vUv-.5)*vec2(uAsp,1.);float t=uT;int m=int(uM+.5);vec2 q;
+if(m==0)q=fold(p,6.,t*.05);
+else if(m==1)q=fold(p*(1.+.2*sin(t*.5)),8.,-t*.1);
+else if(m==2){float c=cos(t*.05),s=sin(t*.05);q=abs(mat2(c,s,-s,c)*p);}
+else if(m==3)q=fold(p*1.4,3.,t*.07);
+else if(m==4){float r=length(p);float a=atan(p.y,p.x)+log(r+.05)*1.2;q=fold(r*vec2(cos(a),sin(a)),5.,t*.06);}
+else if(m==5)q=(abs(fract(p*1.3+.5+vec2(t*.03,t*.02))*2.-1.)-.5)*1.2;
+else{float r=abs(fract(length(p)*1.6-t*.05)*2.-1.)*1.4;q=fold(normalize(p+1e-5)*r,12.,t*.04);}
+vec2 uv=q/vec2(uAsp,1.)+.5;uv=abs(mod(uv+1.,2.)-1.);gl_FragColor=mix(texture2D(tx,vUv),texture2D(tx,uv),uAmt);}`;
+const kSc=new THREE.Scene(),kq=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:KU,vertexShader:BV,fragmentShader:KF,depthTest:false,depthWrite:false}));
+kq.frustumCulled=false;kSc.add(kq);
+let kAmt=0,kAuto=false,kSup=false,lastCur=-1;const KSET=[69,20,28,31,66];
+const pickK=()=>{let m;do{m=Math.random()*7|0;}while(m===lastK);lastK=m;KU.uM.value=m;};
+addEventListener("keydown",e=>{if(e.code!=="KeyK"||e.repeat)return;if(kOn||kAuto){kOn=false;kSup=true;return;}pickK();kOn=true;});
+addEventListener("resize",()=>{R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();U.uPx.value=dpr*innerHeight/900*1.6;BU.uAsp.value=innerWidth/innerHeight;KU.uAsp.value=innerWidth/innerHeight;rtm.setSize(innerWidth*dpr,innerHeight*dpr);});
+
+const HOLD=105,MORPH=15;let deck=[],last=-1;const ACT=[...Array(70).keys()];
+function next(){if(!deck.length){do{deck=[...ACT,11,50,51,52,53,54,23,55,56,57,58,59,23,55,56,57,58,59,40,6,60,61,62,63,40,6,60,61,62,63,34,64,65,66,67,68,34,64,65,66,67,68];for(let i=deck.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[deck[i],deck[j]]=[deck[j],deck[i]];}}while(deck.some((v,k)=>k&&v===deck[k-1])||deck[deck.length-1]===last);
+if(deck[deck.length-1]===last){const j=Math.random()*(deck.length-1)|0;[deck[deck.length-1],deck[j]]=[deck[j],deck[deck.length-1]];}}
+last=deck.pop();return last;}
+let cur=next(),nxt=next(),seg=0;U.uA.value=cur;U.uB.value=nxt;
+const hud=document.getElementById("h");
+function show(i){hud.textContent=String(ACT.indexOf(i)+1).padStart(2,"0")+" / "+ACT.length+"  ·  "+N[i];hud.style.opacity=1;setTimeout(()=>hud.style.opacity=0,7000);}
+show(cur);
+let rv=false,mm=0,bk=false;const hist=[];const skip=()=>{if(!rv&&seg<HOLD)seg=HOLD;};const prev=()=>{if(rv)return;if(seg>HOLD){rv=true;mm=U.uM.value;return;}if(!hist.length)return;deck.push(nxt,cur);nxt=hist.pop();U.uB.value=nxt;bk=true;seg=HOLD;shown=false;};addEventListener("pointerdown",e=>{if(e.button===0)skip();});addEventListener("contextmenu",e=>{e.preventDefault();prev();});addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="ArrowRight")skip();else if(e.code==="ArrowLeft")prev();});
+let shown=true,px=0,py=0;
+
+const clk=new THREE.Clock();let T=0;
+(function loop(){requestAnimationFrame(loop);const dt=Math.min(clk.getDelta(),.1);T+=dt;if(rv){mm=Math.max(mm-dt/MORPH*2,0);U.uM.value=mm;if(!mm){rv=false;seg=0;shown=false;show(cur);}}else seg+=dt;if(!rv)
+if(seg>HOLD){U.uM.value=Math.min((seg-HOLD)/MORPH,1);if(!shown&&U.uM.value>.5){show(nxt);shown=true;}
+if(seg>=HOLD+MORPH){if(!bk)hist.push(cur);bk=false;cur=nxt;nxt=next();U.uA.value=cur;U.uB.value=nxt;U.uM.value=0;seg=0;shown=false;}}
+else U.uM.value=0;
+U.uT.value=T;
+const an=T*.05+1.4*Math.sin(T*.031);const x0=3.6+1.5*Math.sin(T*.055)+.3*Math.sin(T*.13+1);const rr=2.6+Math.log(1+Math.exp((x0-2.6)*3))/3;const df=Math.min(1,Math.max(0,(rr-2.4)/3));const el=.6*Math.sin(T*.043)+.25*Math.sin(T*.071);cam.position.set(Math.sin(an)*rr*Math.cos(el)+Math.sin(T*.09)*.6*df,rr*Math.sin(el),Math.cos(an)*rr*Math.cos(el)+Math.sin(T*.05)*.6*df);cam.up.set(0,1,0);cam.fov=55+8*Math.sin(T*.05);cam.updateProjectionMatrix();cam.lookAt(Math.sin(T*.09)*.35*df,Math.cos(T*.07)*.25*df,Math.sin(T*.06+2.)*.35*df);
+if(cur!==lastCur){lastCur=cur;kSup=false;}const au=KSET.includes(cur)&&seg<=HOLD&&!rv&&!kSup;if(au&&!kAuto&&!kOn)pickK();kAuto=au;kAmt+=(((kOn||au)?1:0)-kAmt)*Math.min(dt*2.5,1);KU.uAmt.value=kAmt;
+R.setRenderTarget(rtg);R.render(bgSc,cam);if(kAmt>.003){R.setRenderTarget(rtm);R.render(sc,cam);R.setRenderTarget(null);R.render(kSc,cam);}else{R.setRenderTarget(null);R.render(sc,cam);}})();
+</script></body></html>
